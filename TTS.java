@@ -34,22 +34,22 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
 
 public class TTS extends Application {
-	private final String SCRIPT_PART0 = "' \nset speech = Wscript.CreateObject(\"SAPI.spVoice\")\n speech.speak ";
 	private KeyListener listener;
-	public static void main(String[] args) throws IOException {
-		//assign this class to be a HotKeyListener
-		listener = new KeyListener();
+	public static void main(String[] args) {
 		launch(args);
 		while(true) {
+			
 		}
 		
 		//Runtime.getRuntime().exec("cmd /c start tosay.vbs");
 	}
 	
 	@Override
-    public void start(Stage stage) {
+    public void start(Stage stage) throws IOException {
 		GridPane rootGridPane = new GridPane();
 		ToggleGroup toggleGroup = new ToggleGroup();
+		
+		listener = new KeyListener();
 		
 		for (int i = 0; i < 20; i++) {
 			Label sayingLabel = new Label("voice saying: ");
@@ -71,6 +71,7 @@ public class TTS extends Application {
 			radioButton.setOnKeyTyped(new EventHandler<KeyEvent>() {
 				public void handle(KeyEvent ke) {
 					bindCharactersLabel.setText(ke.getCharacter());
+					listener.bindToSaying(ke.getCharacter(), sayingTextField.getText());
 				}
 			});
 			
