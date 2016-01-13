@@ -32,6 +32,8 @@ import javafx.geometry.Pos;
 import javafx.scene.layout.GridPane;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.stage.WindowEvent;
+import javafx.application.Platform;
 
 public class TTS extends Application {
 	private KeyListener listener;
@@ -46,6 +48,19 @@ public class TTS extends Application {
 	
 	@Override
     public void start(Stage stage) throws IOException {
+		stage.setOnCloseRequest(new EventHandler<WindowEvent>() 
+		{
+			public void handle(WindowEvent e){
+				try {
+					Platform.exit();
+					System.exit(0);
+				} 
+				catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+	    });
+   
 		GridPane rootGridPane = new GridPane();
 		ToggleGroup toggleGroup = new ToggleGroup();
 		
