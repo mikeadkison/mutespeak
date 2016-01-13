@@ -7,13 +7,16 @@ import java.util.Map;
 import java.util.HashMap;
 import java.io.PrintWriter;
 
+import javafx.scene.control.TextField;
+
+
 public class KeyListener implements HotkeyListener {
 	private final String SCRIPT_PART0 = "' \nset speech = Wscript.CreateObject(\"SAPI.spVoice\")\n speech.speak ";
 	private static int hotKeyIndex = 0; //identifier for registered hot keys
-	private Map<Integer, String> indexToSayingMap;
+	private Map<Integer, TextField> hotKeyIndexToSayingFieldMap;
 	
 	public KeyListener() throws IOException {
-		indexToSayingMap = new HashMap<>();
+		hotKeyIndexToSayingFieldMap = new HashMap<>();
 		
 		JIntellitype.setLibraryLocation(new File("JIntellitype64.dll"));
 		JIntellitype.getInstance();
@@ -28,15 +31,15 @@ public class KeyListener implements HotkeyListener {
 		//Runtime.getRuntime().exec("cmd /c start tosay.vbs");
 	}
 	
-	public void bindToSaying(String character, String saying) {
+	public void bindToSaying(String character, TextField sayingTextField) {
 		JIntellitype.getInstance().registerHotKey(hotKeyIndex, character);
-		indexToSayingMap.put(hotKeyIndex, saying);
+		hotKeyIndexToSayingFieldMap.put(hotKeyIndex, sayingTextField);
 		hotKeyIndex++; //increment index so it is unique
 	}
 	
 	// listen for hotkey
 	public void onHotKey(int aIdentifier) {
-		String saying = indexToSayingMap.get(aIdentifier);
+		String saying = hotKeyIndexToSayingFieldMap.get(aIdentifier).getText();
 		if (saying != null) {
 			String script = SCRIPT_PART0 + "\"" + saying + "\"";
 			

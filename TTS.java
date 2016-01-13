@@ -43,7 +43,6 @@ public class TTS extends Application {
 			
 		}
 		
-		//Runtime.getRuntime().exec("cmd /c start tosay.vbs");
 	}
 	
 	@Override
@@ -86,10 +85,17 @@ public class TTS extends Application {
 			radioButton.setOnKeyTyped(new EventHandler<KeyEvent>() {
 				public void handle(KeyEvent ke) {
 					bindCharactersLabel.setText(ke.getCharacter());
-					listener.bindToSaying(ke.getCharacter(), sayingTextField.getText());
+					listener.bindToSaying(ke.getCharacter(), sayingTextField);
 				}
 			});
 			
+			sayingTextField.setOnKeyTyped(new EventHandler<KeyEvent>() {
+				public void handle(KeyEvent ke) {
+					if (bindCharactersLabel.getText().length() > 0) {
+						listener.bindToSaying(bindCharactersLabel.getText(), sayingTextField);
+					}
+				}
+			});
 			
 			
 		}
