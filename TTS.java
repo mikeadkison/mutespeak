@@ -107,27 +107,4 @@ public class TTS extends Application {
 		stage.setScene(scene);
 		stage.show();
 	}
-	
-	
-	
-	// listen for hotkey
-	public void onHotKey(int aIdentifier) {
-		if (aIdentifier == 1) {
-			System.out.println("WINDOWS+A hotkey pressed");
-			try {
-				Runtime.getRuntime().exec("cmd /c start tosay.vbs");
-			} catch (IOException e) {
-				e.printStackTrace();
-				JIntellitype.getInstance().cleanUp();
-				System.exit(-1);
-			}
-		}
-		if (aIdentifier == 2) {
-			System.out.println("Alt shift b prsesed, terminating");
-			// Termination, make sure to call before exiting
-			JIntellitype.getInstance().cleanUp();
-			System.exit(0);
-		}
-		
-	}
 }
