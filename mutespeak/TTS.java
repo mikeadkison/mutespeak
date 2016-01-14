@@ -1,3 +1,6 @@
+package mutespeak;
+
+
 import java.io.IOException;
 import com.melloware.jintellitype.JIntellitype;
 import com.melloware.jintellitype.HotkeyListener;
@@ -40,7 +43,8 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 
 public class TTS extends Application {
-	private KeyListener listener;
+	List<BindHBox> bindHBoxes;
+	
 	public static void main(String[] args) {
 		launch(args);
 		while(true) {
@@ -67,60 +71,33 @@ public class TTS extends Application {
 		GridPane gridPane = new GridPane();
 		ToggleGroup toggleGroup = new ToggleGroup();
 		
-		listener = new KeyListener();
 		
-		int i = 0;
-		for (; i < 20; i++) {
-			Label sayingLabel = new Label("voice saying: ");
-			gridPane.add(sayingLabel, 0, i);
-			
-			final TextField sayingTextField = new TextField ();
-			gridPane.add(sayingTextField, 1, i);
-			
-			Label bindLabel = new Label("bind: ");
-			gridPane.add(bindLabel, 2, i);
-			
-			final RadioButton radioButton = new RadioButton();
-			radioButton.setToggleGroup(toggleGroup);
-			gridPane.add(radioButton, 3, i);
-
-			final Label bindCharactersLabel = new Label("");
-			gridPane.add(bindCharactersLabel, 4, i);
-			
-			radioButton.setOnKeyTyped(new EventHandler<KeyEvent>() {
-				public void handle(KeyEvent ke) {
-					bindCharactersLabel.setText(ke.getCharacter());
-					listener.bindToSaying(ke.getCharacter(), sayingTextField);
-				}
-			});
-			
-			sayingTextField.setOnKeyTyped(new EventHandler<KeyEvent>() {
-				public void handle(KeyEvent ke) {
-					if (bindCharactersLabel.getText().length() > 0) {
-						listener.bindToSaying(bindCharactersLabel.getText(), sayingTextField);
-					}
-				}
-			});
+		CheckBox bindToggle = new CheckBox("binds enabled");
+		bindToggle.setSelected(true);
+		
+		bindHBoxes = new ArrayList<>();
+		for (int i = 0; i < 20; i++) {
+			BindHBox bindHBox = new BindHBox(toggleGroup, bindHBoxes, bindToggle);
+			gridPane.add(bindHBox, 0, i);
+			bindHBoxes.add(bindHBox);
 			
 			
 		}
 		
-		CheckBox bindToggle = new CheckBox("binds enabled");
-		bindToggle.setSelected(true);
 		
 		bindToggle.selectedProperty().addListener(new ChangeListener<Boolean>() {
 			@Override
 			public void changed(ObservableValue<? extends Boolean> observableVal, Boolean oldVal, Boolean newVal) {
 				if (true == newVal) { //turn binds on
-					listener.enableBinds();
+					enableAllHBoxBinds();
 				} else { //turn binds off
-					listener.disableBinds();
+					for (BindHBox hbox: bindHBoxes) {
+						hbox.listener.disableBind();
+					}
 				}
 			}
 		});
-		gridPane.add(bindToggle, i, 0);
-		
-		
+
 		
 		VBox rootVBox = new VBox();
 		rootVBox.getChildren().add(gridPane);
@@ -129,5 +106,11 @@ public class TTS extends Application {
 		Scene scene = new Scene(rootVBox, 500, 600, Color.BLACK);
 		stage.setScene(scene);
 		stage.show();
+	}
+	
+	private void enableAllHBoxBinds() {
+		for (BindHBox hbox: bindHBoxes) {
+			hbox.listener.enableBind();
+		}
 	}
 }
