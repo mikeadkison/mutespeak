@@ -34,6 +34,10 @@ import javafx.scene.control.RadioButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.stage.WindowEvent;
 import javafx.application.Platform;
+import javafx.scene.control.CheckBox;
+import javafx.scene.layout.VBox;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 
 public class TTS extends Application {
 	private KeyListener listener;
@@ -59,28 +63,29 @@ public class TTS extends Application {
 				}
 			}
 	    });
-   
-		GridPane rootGridPane = new GridPane();
+		
+		GridPane gridPane = new GridPane();
 		ToggleGroup toggleGroup = new ToggleGroup();
 		
 		listener = new KeyListener();
 		
-		for (int i = 0; i < 20; i++) {
+		int i = 0;
+		for (; i < 20; i++) {
 			Label sayingLabel = new Label("voice saying: ");
-			rootGridPane.add(sayingLabel, 0, i);
+			gridPane.add(sayingLabel, 0, i);
 			
 			final TextField sayingTextField = new TextField ();
-			rootGridPane.add(sayingTextField, 1, i);
+			gridPane.add(sayingTextField, 1, i);
 			
 			Label bindLabel = new Label("bind: ");
-			rootGridPane.add(bindLabel, 2, i);
+			gridPane.add(bindLabel, 2, i);
 			
 			final RadioButton radioButton = new RadioButton();
 			radioButton.setToggleGroup(toggleGroup);
-			rootGridPane.add(radioButton, 3, i);
+			gridPane.add(radioButton, 3, i);
 
 			final Label bindCharactersLabel = new Label("");
-			rootGridPane.add(bindCharactersLabel, 4, i);
+			gridPane.add(bindCharactersLabel, 4, i);
 			
 			radioButton.setOnKeyTyped(new EventHandler<KeyEvent>() {
 				public void handle(KeyEvent ke) {
@@ -100,10 +105,28 @@ public class TTS extends Application {
 			
 		}
 		
+		CheckBox bindToggle = new CheckBox("binds enabled");
+		bindToggle.setSelected(true);
+		
+		bindToggle.selectedProperty().addListener(new ChangeListener<Boolean>() {
+			@Override
+			public void changed(ObservableValue<? extends Boolean> observableVal, Boolean oldVal, Boolean newVal) {
+				if (true == newVal) { //turn binds on
+					listener.enableBinds();
+				} else { //turn binds off
+					listener.disableBinds();
+				}
+			}
+		});
+		gridPane.add(bindToggle, i, 0);
 		
 		
 		
-		Scene scene = new Scene(rootGridPane, 500, 500, Color.BLACK);
+		VBox rootVBox = new VBox();
+		rootVBox.getChildren().add(gridPane);
+		rootVBox.getChildren().add(bindToggle);
+		
+		Scene scene = new Scene(rootVBox, 500, 600, Color.BLACK);
 		stage.setScene(scene);
 		stage.show();
 	}

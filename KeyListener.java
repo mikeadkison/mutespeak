@@ -13,12 +13,15 @@ import javafx.scene.control.TextField;
 public class KeyListener implements HotkeyListener {
 	private final String SCRIPT_PART0 = "' \nset speech = Wscript.CreateObject(\"SAPI.spVoice\")\n speech.speak ";
 	private static int hotKeyIndex = 0; //identifier for registered hot keys
+
 	private Map<Integer, TextField> hotKeyIndexToSayingFieldMap;
 	private Map<TextField, Integer> sayingFieldToHotKeyIndexMap;
+	private Map<Integer, String> hotKeyIndexToBindMap;
 	
 	public KeyListener() throws IOException {
 		hotKeyIndexToSayingFieldMap = new HashMap<>();
 		sayingFieldToHotKeyIndexMap = new HashMap<>();
+		hotKeyIndexToBindMap = new HashMap<>();
 		
 		JIntellitype.setLibraryLocation(new File("JIntellitype64.dll"));
 		JIntellitype.getInstance();
@@ -37,12 +40,26 @@ public class KeyListener implements HotkeyListener {
 		if (null != indexToRebind) {
 			JIntellitype.getInstance().unregisterHotKey(indexToRebind);
 			JIntellitype.getInstance().registerHotKey(indexToRebind, character); //rebind to a new character
+			hotKeyIndexToBindMap.put(indexToRebind, character);
 			
 		} else { //no bind exists yet for this text field, so associate the field with a bind (meaning the bind's unique id)
 			JIntellitype.getInstance().registerHotKey(hotKeyIndex, character);
 			sayingFieldToHotKeyIndexMap.put(sayingTextField, hotKeyIndex);
 			hotKeyIndexToSayingFieldMap.put(hotKeyIndex, sayingTextField);
+			hotKeyIndexToBindMap.put(hotKeyIndex, character);
 			hotKeyIndex++; //increment index so it is unique
+		}
+	}
+	
+	public void disableBinds() {
+		for (Integer indexToUnbind: hotKeyIndexToSayingFieldMap.keySet()) {
+			JIntellitype.getInstance().unregisterHotKey(indexToUnbind);
+		}
+	}
+	
+	public void enableBinds() {
+		for (Integer indexToRebind: hotKeyIndexToSayingFieldMap.keySet()) {
+			JIntellitype.getInstance().registerHotKey(indexToRebind, hotKeyIndexToBindMap.get(indexToRebind));
 		}
 	}
 	
