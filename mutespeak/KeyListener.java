@@ -70,7 +70,6 @@ public class KeyListener implements HotkeyListener {
 	// listen for hotkey
 	public void onHotKey(int aIdentifier) {
 		if (saying != null && aIdentifier == hotKeyIndex) {
-			System.out.println("id: " + hotKeyIndex);
 			String script = SCRIPT_PART0 + "\"" + saying + "\"";
 			
 			try {

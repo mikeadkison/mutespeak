@@ -1,2 +1,2 @@
 Class-Path: jintellitype-1.3.9.jar
-Main-Class: TTS
+Main-Class: mutespeak.TTS
