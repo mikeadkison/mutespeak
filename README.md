@@ -10,6 +10,7 @@ javac -cp .;jintellitype-1.3.9.jar mutespeak/*.java
 
 #### Running
 java -cp .;jintellitype-1.3.9.jar mutespeak.TTS
+Run it with 64 bit java. If you want to use 32 bit java, will have to recompile with the 32 bit dll.
 
 #### Jarring
 * jar -cvfm TTS.jar MANIFEST.MF mutespeak/*.class
