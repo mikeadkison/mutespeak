@@ -68,16 +68,14 @@ public class TTS extends Application {
 			}
 	    });
 		
-		GridPane gridPane = new GridPane();
-		ToggleGroup toggleGroup = new ToggleGroup();
-		
+		GridPane gridPane = new GridPane();	
 		
 		CheckBox bindToggle = new CheckBox("binds enabled");
 		bindToggle.setSelected(true);
 		
 		bindHBoxes = new ArrayList<>();
 		for (int i = 0; i < 20; i++) {
-			BindHBox bindHBox = new BindHBox(toggleGroup, bindHBoxes, bindToggle);
+			BindHBox bindHBox = new BindHBox(bindHBoxes, bindToggle);
 			gridPane.add(bindHBox, 0, i);
 			bindHBoxes.add(bindHBox);
 			
@@ -92,7 +90,7 @@ public class TTS extends Application {
 					enableAllHBoxBinds();
 				} else { //turn binds off
 					for (BindHBox hbox: bindHBoxes) {
-						hbox.listener.disableBind();
+						hbox.listener.disableBinds();
 					}
 				}
 			}
@@ -110,7 +108,7 @@ public class TTS extends Application {
 	
 	private void enableAllHBoxBinds() {
 		for (BindHBox hbox: bindHBoxes) {
-			hbox.listener.enableBind();
+			hbox.listener.enableBinds();
 		}
 	}
 }

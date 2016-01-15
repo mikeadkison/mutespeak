@@ -38,8 +38,11 @@ import javafx.scene.layout.HBox;
 import java.util.List;
 import java.util.ArrayList;
 
+import javafx.scene.control.ComboBox;
+
+
+
 public class BindHBox extends HBox {
-	protected RadioButton radioButton;
 	protected Label bindCharactersLabel;
 	protected final KeyListener listener = new KeyListener();
 	private List<BindHBox> allHBoxes;
@@ -48,7 +51,10 @@ public class BindHBox extends HBox {
 	
 	private static final List<String> ALLOWED_BINDS = new ArrayList<>();
 	
-	public BindHBox(ToggleGroup toggleGroup, List<BindHBox> allHBoxes, CheckBox enabledToggle) {
+	public BindHBox(List<BindHBox> allHBoxes, CheckBox enabledToggle) {
+		
+		
+		
 		this.allHBoxes = allHBoxes;
 		
 		Label sayingLabel = new Label("voice saying: ");
@@ -60,9 +66,13 @@ public class BindHBox extends HBox {
 		Label bindLabel = new Label("bind: ");
 		this.getChildren().add(bindLabel);
 		
-		radioButton = new RadioButton();
-		radioButton.setToggleGroup(toggleGroup);
-		this.getChildren().add(radioButton);
+		ComboBox<String> bindsComboBox0 = new ComboBox<>();
+		bindsComboBox0.getItems().addAll("", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
+		this.getChildren().add(bindsComboBox0);
+		
+		ComboBox<String> bindsComboBox1 = new ComboBox<>();
+		bindsComboBox1.getItems().addAll("", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
+		this.getChildren().add(bindsComboBox1);
 
 		bindCharactersLabel = new Label("");
 		this.getChildren().add(bindCharactersLabel);
@@ -76,62 +86,48 @@ public class BindHBox extends HBox {
 		cntrlCB.selectedProperty().addListener(new ChangeListener<Boolean>() {
 			@Override
 			public void changed(ObservableValue<? extends Boolean> observableVal, Boolean oldVal, Boolean newVal) {
-				changeBinding(bindCharactersLabel.getText());
+				if (newVal) {
+					listener.addBind("CTRL");
+				} else {
+					listener.removeBind("CTRL");
+				}
 			}
 		});
 		
 		altCB.selectedProperty().addListener(new ChangeListener<Boolean>() {
 			@Override
 			public void changed(ObservableValue<? extends Boolean> observableVal, Boolean oldVal, Boolean newVal) {
-				changeBinding(bindCharactersLabel.getText());
+				if (newVal) {
+					listener.addBind("ALT");
+				} else {
+					listener.removeBind("ALT");
+				}
 			}
 		});
 		
-		radioButton.setOnKeyTyped(new EventHandler<KeyEvent>() {
-			public void handle(KeyEvent ke) {
-				bindCharactersLabel.setText(ke.getCharacter());
-				String bindString = ke.getCharacter();
-				
-				changeBinding(bindString);
-				
-				for (BindHBox hbox: allHBoxes) {
-					if (hbox != BindHBox.this) {
-						KeyListener listener = hbox.listener;
-						if (listener.getBind() != null && listener.getBind().equals(BindHBox.this.listener.getBind())) {
-							listener.removeBind();
-							hbox.bindCharactersLabel.setText("");
-						}
-					}
-					
+		bindsComboBox0.valueProperty().addListener(new ChangeListener<String>() {
+			@Override public void changed(ObservableValue ov, String oldStr, String newStr) {
+				listener.removeBind(oldStr);
+				if (!newStr.equals("")) {
+					listener.addBind(newStr);
 				}
-				
-				if (!enabledToggle.isSelected()) {
-					listener.disableBind();
-				}
-			}
+			}    
 		});
+		
+		bindsComboBox1.valueProperty().addListener(new ChangeListener<String>() {
+			@Override public void changed(ObservableValue ov, String oldStr, String newStr) {
+				listener.removeBind(oldStr);
+				if (!newStr.equals("")) {
+					listener.addBind(newStr);
+				}
+			}    
+		});
+
 		
 		sayingTextField.setOnKeyTyped(new EventHandler<KeyEvent>() {
 			public void handle(KeyEvent ke) {
 				listener.changeSaying(sayingTextField.getText() + ke.getCharacter());
 			}
 		});
-	}
-	
-	/**
-	 * @param baseBind - the base key before alt and ctrl key modifiers added
-	 */
-	private void changeBinding(String baseBind) {
-		System.out.println("change binding");
-		if (cntrlCB.isSelected()) {
-			System.out.println("cntrl");
-			baseBind = "CTRL+" + baseBind;
-		}
-				
-		if (altCB.isSelected()) {
-			baseBind = "ALT+" + baseBind;
-		}
-		System.out.println(baseBind);
-		listener.changeBind(baseBind);
 	}
 }
