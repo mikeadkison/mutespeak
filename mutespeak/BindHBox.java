@@ -181,7 +181,6 @@ public class BindHBox extends HBox {
 	}
 	
 	protected void onBindSatisfied() {
-		System.out.println("bind satisfied");
 		say();
 	}
 	

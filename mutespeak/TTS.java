@@ -106,11 +106,9 @@ public class TTS extends Application {
 			@Override
 			public void changed(ObservableValue<? extends Boolean> observableVal, Boolean oldVal, Boolean newVal) {
 				if (true == newVal) { //turn binds on
-					//enableAllHBoxBinds();
+					listener.bindsEnabled = true;
 				} else { //turn binds off
-					for (BindHBox hbox: bindHBoxes) {
-						//hbox.listener.disableBinds();
-					}
+					listener.bindsEnabled = false;
 				}
 			}
 		});
@@ -124,10 +122,5 @@ public class TTS extends Application {
 		stage.setScene(scene);
 		stage.show();
 	}
-	
-	private void enableAllHBoxBinds() {
-		for (BindHBox hbox: bindHBoxes) {
-			//hbox.listener.enableBinds();
-		}
-	}
+
 }

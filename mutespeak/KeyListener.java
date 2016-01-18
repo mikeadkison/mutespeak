@@ -32,8 +32,10 @@ public class KeyListener implements HotkeyListener {
 	private static final long MAX_DELAY = 500;
 	
 	protected List<BindHBox> bindHBoxes;
+	protected boolean bindsEnabled;
 	
 	public KeyListener() {
+		bindsEnabled = true;
 		//assign this class to be a HotKeyListener
 		JIntellitype.setLibraryLocation(new File("JIntellitype64.dll"));
 		JIntellitype.getInstance().addHotKeyListener(this);
@@ -142,11 +144,9 @@ public class KeyListener implements HotkeyListener {
 			hotKeyIndexIncrementer++;
 		}
 		
-		System.out.println("complete binds: " + triggeringComboToKeysMap.keySet());
 	}
 	
 	private List<String> combinate(List<String> theList, int depth) {
-		//System.out.println("theList: " + theList);
 		
 		if (depth == 1 || theList.size() == 1) { //base case
 			return theList;
@@ -170,30 +170,33 @@ public class KeyListener implements HotkeyListener {
 	
 	@Override
 	public void onHotKey(int aIdentifier) {
-		String combo = hotKeyIndexToComboMap.get(aIdentifier);
-		List<String> keysSatisfied = triggeringComboToKeysMap.get(combo); // get the keys which are included in this combo
-		for (String key: keysSatisfied) {
-			keyToTimeLastPressedMap.put(key, System.currentTimeMillis());
-		}
-		
-		List<String> keys = new ArrayList<>();
-		keys.addAll(modifiers);
-		keys.addAll(nonModifiers);
-		
-		List<String> recentlyPressed = new ArrayList<>();
-		
-		for (String key: keys) {
+		if (bindsEnabled) {
+			String combo = hotKeyIndexToComboMap.get(aIdentifier);
+			List<String> keysSatisfied = triggeringComboToKeysMap.get(combo); // get the keys which are included in this combo
+			for (String key: keysSatisfied) {
+				keyToTimeLastPressedMap.put(key, System.currentTimeMillis());
+			}
+			
+			List<String> keys = new ArrayList<>();
+			keys.addAll(modifiers);
+			keys.addAll(nonModifiers);
+			
+			List<String> recentlyPressed = new ArrayList<>();
+			
+			for (String key: keys) {
 
-			if (keyToTimeLastPressedMap.get(key) != null && System.currentTimeMillis() - keyToTimeLastPressedMap.get(key) < MAX_DELAY) {
-				recentlyPressed.add(key);
+				if (keyToTimeLastPressedMap.get(key) != null && System.currentTimeMillis() - keyToTimeLastPressedMap.get(key) < MAX_DELAY) {
+					recentlyPressed.add(key);
+				}
+			}
+			
+			
+			for (BindHBox hbox: bindHBoxes) {
+				if (recentlyPressed.containsAll(hbox.getBindKeys()) && !hbox.getBindKeys().isEmpty()) {
+					hbox.onBindSatisfied();
+				}
 			}
 		}
 		
-		
-		for (BindHBox hbox: bindHBoxes) {
-			if (recentlyPressed.containsAll(hbox.getBindKeys()) && !hbox.getBindKeys().isEmpty()) {
-				hbox.onBindSatisfied();
-			}
-		}
 	}
 }
