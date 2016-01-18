@@ -44,8 +44,10 @@ import javafx.beans.value.ObservableValue;
 
 public class TTS extends Application {
 	List<BindHBox> bindHBoxes;
+	KeyListener listener;
 	
 	public static void main(String[] args) {
+		
 		launch(args);
 		while(true) {
 			
@@ -55,9 +57,11 @@ public class TTS extends Application {
 	
 	@Override
     public void start(Stage stage) throws IOException {
-		stage.setOnCloseRequest(new EventHandler<WindowEvent>() 
-		{
-			public void handle(WindowEvent e){
+		
+		listener = new KeyListener();
+		
+		stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+			public void handle(WindowEvent e) {
 				try {
 					Platform.exit();
 					System.exit(0);
@@ -68,29 +72,29 @@ public class TTS extends Application {
 			}
 	    });
 		
-		GridPane gridPane = new GridPane();	
+		GridPane gridPane = new GridPane();
 		
 		CheckBox bindToggle = new CheckBox("binds enabled");
 		bindToggle.setSelected(true);
 		
 		bindHBoxes = new ArrayList<>();
 		for (int i = 0; i < 20; i++) {
-			BindHBox bindHBox = new BindHBox(bindHBoxes, bindToggle);
+			BindHBox bindHBox = new BindHBox(listener, bindHBoxes, bindToggle);
 			gridPane.add(bindHBox, 0, i);
 			bindHBoxes.add(bindHBox);
-			
-			
 		}
+		
+		listener.bindHBoxes = bindHBoxes;
 		
 		
 		bindToggle.selectedProperty().addListener(new ChangeListener<Boolean>() {
 			@Override
 			public void changed(ObservableValue<? extends Boolean> observableVal, Boolean oldVal, Boolean newVal) {
 				if (true == newVal) { //turn binds on
-					enableAllHBoxBinds();
+					//enableAllHBoxBinds();
 				} else { //turn binds off
 					for (BindHBox hbox: bindHBoxes) {
-						hbox.listener.disableBinds();
+						//hbox.listener.disableBinds();
 					}
 				}
 			}
@@ -108,7 +112,7 @@ public class TTS extends Application {
 	
 	private void enableAllHBoxBinds() {
 		for (BindHBox hbox: bindHBoxes) {
-			hbox.listener.enableBinds();
+			//hbox.listener.enableBinds();
 		}
 	}
 }

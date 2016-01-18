@@ -7,7 +7,7 @@ import java.io.File;
 
 import java.util.Map;
 import java.util.HashMap;
-import java.io.PrintWriter;
+
 
 import javafx.scene.control.TextField;
 import javafx.scene.control.RadioButton;
@@ -15,193 +15,165 @@ import javafx.scene.control.RadioButton;
 import java.util.List;
 import java.util.ArrayList;
 
+import javafx.scene.control.TextField;
+
 public class KeyListener implements HotkeyListener {
-	private final String SCRIPT_PART0 = "' \nset speech = Wscript.CreateObject(\"SAPI.spVoice\")\n speech.speak ";
-	protected String saying;
 	
-	private static int hotKeyIndexIncrementer = 0; //identifier for registered hot keys
+	private final static String SCRIPT_PART0 = "' \nset speech = Wscript.CreateObject(\"SAPI.spVoice\")\n speech.speak ";
+	
 	private List<String> nonModifiers; //a-z 0-9 keys which are non modifiers
 	private List<String> modifiers; //ctrl, alt keys which are modifiers
-	private List<Integer> hotKeyIndices;
-	private Map<String, Long> keyToTimeLastPressedMap;
-	private Map<String, Integer> comboToHotKeyIndexMap;
-	private Map<Integer, String> hotKeyIndexToComboMap;
-	private Map<String, List<String>> triggeringComboToKeysMap; //maps combos to the keys they trigger
 	
-	private final long MAX_BIND_DELAY = 1000;
+	private Map<String, List<String>> triggeringComboToKeysMap; //maps combos to the keys they trigger
+	private Map<Integer, String> hotKeyIndexToComboMap; // maps hotKeyUids to combos that they represent
+	
+	private static int hotKeyIndexIncrementer = 0;
+	
+	private Map<String, Long> keyToTimeLastPressedMap;
+	private static final long MAX_DELAY = 500;
+	
+	protected List<BindHBox> bindHBoxes;
 	
 	public KeyListener() {
+		//assign this class to be a HotKeyListener
+		JIntellitype.setLibraryLocation(new File("JIntellitype64.dll"));
+		JIntellitype.getInstance().addHotKeyListener(this);
+		
+		
 		nonModifiers = new ArrayList<>();
 		modifiers = new ArrayList<>();
-		hotKeyIndices = new ArrayList<>();
-		keyToTimeLastPressedMap = new HashMap<>();
-		comboToHotKeyIndexMap = new HashMap<>();
-		hotKeyIndexToComboMap = new HashMap<>();
 		triggeringComboToKeysMap = new HashMap<>();
+		hotKeyIndexToComboMap = new HashMap<>();
+		keyToTimeLastPressedMap = new HashMap<>();
 		
-		JIntellitype.setLibraryLocation(new File("JIntellitype64.dll"));
-		
-		JIntellitype.getInstance();
-
-		//assign this class to be a HotKeyListener
-		JIntellitype.getInstance().addHotKeyListener(this);
-
 	}
 	
-	protected void addBind(String character) {
-		System.out.println("adding bind: " + character);
-		if ("ALT".equals(character) || "CTRL".equals(character)) {
-			if (!modifiers.contains(character)) {
-				modifiers.add(character);
+	protected void startListeningFor(String key) {
+		if (key.equals("ALT") || key.equals("CTRL")) {
+			if (!modifiers.contains(key)) {
+				modifiers.add(key);
 			}
-		} else if (!nonModifiers.contains(character)) {
-			nonModifiers.add(character);
+		} else {
+			if (!nonModifiers.contains(key)) {
+				nonModifiers.add(key);
+			}
 		}
-		System.out.println(modifiers);
-		System.out.println(nonModifiers);
-		redoBinds();
+		doBinds();
 	}
 	
-	private void redoBinds() {
-		unbindBinds(); //unbind current binds
-		hotKeyIndices.clear(); //remove references to current binds
-		keyToTimeLastPressedMap.clear();
-		comboToHotKeyIndexMap.clear();
-		hotKeyIndexToComboMap.clear();
+	/**
+	 * map key combinations to what key presses they satisfy
+	 * important: cant have two+ non modifiers in a combo
+	 */
+	public void doBinds() {
+		//clear previous information
 		triggeringComboToKeysMap.clear();
 		
-		//register a bind for every other character that needs bound
-		if (nonModifiers.size() > 0) {
-			//make a main bind
-			List<String> modifierPrefixes = new ArrayList<>();
-			String basePrefix = "";
-			for (String modifier: modifiers) { //generate all possible modifer combinations
-				basePrefix = basePrefix + modifier + "+";
-				modifierPrefixes.add(basePrefix);
-			}
+		
+		//map a combo composed only of a single modifier to the single modifier (and nothing else) which that combo satisfies
+		for (String modifier: modifiers) {
+			List<String> keys = new ArrayList<>();// a combo composed of a single key can only trigger that key
+			keys.add(modifier);
+			triggeringComboToKeysMap.put(modifier, keys);
+		}
+		
+		
+		//generate all possible modifer combinations
+		List<String> modifierPrefixes =  new ArrayList<>();
+		
+		for(int combinationSize = 0; combinationSize < modifiers.size(); combinationSize++) {
+			modifierPrefixes.addAll(combinate(modifiers, combinationSize));
+		}
+		
+		
+		
+		
+		//now combine them with the non modifiers
+		List<String> modsPlusNonMods = new ArrayList<>();
+		for (String nonModifier: nonModifiers) {
 			
-			List<String> completeCombos = new ArrayList<>();
-			for (String nonModifier: nonModifiers) { //combine prefixes with binds
-				List<String> triggeringCombos = new ArrayList<>();
-				completeCombos.add(nonModifier);
-				triggeringCombos.add(nonModifier);
-				for (String prefix: modifierPrefixes) {
-					completeCombos.add(prefix + nonModifier);
-					triggeringCombos.add(prefix + nonModifier);
+			//map the combo composed of this single key to this single key which it triggers
+			triggeringComboToKeysMap.put(nonModifier, new ArrayList<String>());
+			triggeringComboToKeysMap.get(nonModifier).add(nonModifier);
+			
+			for (String modifierPrefix: modifierPrefixes) {
+				String currentCombo = modifierPrefix + "+" + nonModifier;
+				List<String> modifiersInPrefix = new ArrayList<>();
+				
+				//determine which modifiers are in prefix
+				for (String modifier: modifiers) {
+					if (modifierPrefix.contains(modifier)) {
+						modifiersInPrefix.add(modifier);
+					}
 				}
 				
-				for (String combo: triggeringCombos) {
-					if (!triggeringComboToKeysMap.containsKey(combo)) {
-						triggeringComboToKeysMap.put(combo, new ArrayList<String>());
-					}
-					triggeringComboToKeysMap.get(combo).add(nonModifier);
-					for (String modifier: modifiers) { //map this combo to the modifiers whose keypresses it satisfies
-						if (combo.contains(modifier)) {
-							triggeringComboToKeysMap.get(combo).add(modifier);
-						}
-					}
+				//map the current combo to all of the keys it includes
+				triggeringComboToKeysMap.put(currentCombo, new ArrayList<String>());
+				triggeringComboToKeysMap.get(currentCombo).add(nonModifier);
+				for (String modifierInPrefix: modifiersInPrefix) {
+					triggeringComboToKeysMap.get(currentCombo).add(modifierInPrefix);
 				}
+				
+			}
+		}
+		
+		//actually register every combo
+		for (String combo: triggeringComboToKeysMap.keySet()) {
+			hotKeyIndexToComboMap.put(hotKeyIndexIncrementer, combo);
+			JIntellitype.getInstance().registerHotKey(hotKeyIndexIncrementer, combo);
+			hotKeyIndexIncrementer++;
+		}
+		
+		System.out.println("complete binds: " + triggeringComboToKeysMap.keySet());
+	}
+	
+	private List<String> combinate(List<String> theList, int depth) {
+		//System.out.println("theList: " + theList);
+		
+		if (depth == 1 || theList.size() == 1) { //base case
+			return theList;
+		}
+		
+		
+		List<String> basePlusResults = new ArrayList<>();
+		for (int i = 0; i < theList.size(); i++) {
+			String base = theList.get(i);
+			List<String> addTheseToBase = combinate(theList.subList(i + 1, theList.size()), depth - 1);
+
+			for (String toAdd: addTheseToBase) {
+				String combined = base + "+" + toAdd;
+				basePlusResults.add(combined);
 			}
 			
-			for (String modifier: modifiers) { //single modifiers may also be pressed without additional keys, so add them to the list of copmlete binds
-				completeCombos.add(modifier);
-				List<String> keys = new ArrayList<>();
-				keys.add(modifier);
-				triggeringComboToKeysMap.put(modifier, keys); // ex) "CTRL" -> ("CTRL");
-			}
-			
-			//bind(register) every key combination in the completeCombos list -- 
-			//   at this point, the completeCombos list contains a list of every key combination
-			//   that could be pressed when the user is trying to trigger the key combination they selected in the gui
-			//   Also, the triggeringComboToKeysMap contains a map of the key combinations that satisfy some key's press-> thekeys which are satisfied
-			for (String combo: completeCombos) {
-				JIntellitype.getInstance().registerHotKey(hotKeyIndexIncrementer, combo);
-				hotKeyIndices.add(hotKeyIndexIncrementer);
-				comboToHotKeyIndexMap.put(combo, hotKeyIndexIncrementer);
-				hotKeyIndexToComboMap.put(hotKeyIndexIncrementer, combo);
-				hotKeyIndexIncrementer++;
-			}
-			System.out.println("complete binds: " + completeCombos);
 		}
+		return basePlusResults;
+
 	}
+		
 	
-	
-	protected void changeSaying(String saying) {
-		this.saying = saying;
-	}
-	
-	private void unbindBinds() {
-		for (Integer hotKeyIndexToUnBind: hotKeyIndices) {
-			JIntellitype.getInstance().unregisterHotKey(hotKeyIndexToUnBind);
-		}
-	}
-	
-	protected void disableBinds() {
-		unbindBinds();
-	}
-	
-	protected void enableBinds() {
-		redoBinds();
-	}
-	
-	
-	protected void removeBind(String toRemove) {
-		System.out.println("removing bind: " + toRemove);
-		modifiers.remove(toRemove);
-		nonModifiers.remove(toRemove);
-		//hotKeyIndices.remove(comboToHotKeyIndexMap.get(toRemove));
-		redoBinds();
-	}
-	
-	
-	// listen for hotkey
+	@Override
 	public void onHotKey(int aIdentifier) {
-		System.out.println("------------------------");
-		System.out.println("pressed " + aIdentifier);
-		//get the combo associated with the aIdentifier
-		String comboPressed = hotKeyIndexToComboMap.get(aIdentifier);
-		System.out.println("combo: " + comboPressed);
-		List<String> keysSatisfied = triggeringComboToKeysMap.get(comboPressed); //a list of the keys selected in the gui that are satisfied by this key combo
-		System.out.println("keys satisfied: " + keysSatisfied);
-		//record that each key satisfied by this particular combination was pressed recently
+		String combo = hotKeyIndexToComboMap.get(aIdentifier);
+		List<String> keysSatisfied = triggeringComboToKeysMap.get(combo); // get the keys which are included in this combo
 		for (String key: keysSatisfied) {
 			keyToTimeLastPressedMap.put(key, System.currentTimeMillis());
 		}
 		
-		
-		//keyToTimeLastPressedMap.put(aIdentifier, System.currentTimeMillis());
-		System.out.println("keyToTimeLastPressedMap keys: " + keyToTimeLastPressedMap.keySet());
-		
-		
-
-		
-		boolean say = true;
 		List<String> keys = new ArrayList<>();
 		keys.addAll(modifiers);
 		keys.addAll(nonModifiers);
+		
+		List<String> recentlyPressed = new ArrayList<>();
 		for (String key: keys) {
-			if (keyToTimeLastPressedMap.get(key) == null || System.currentTimeMillis() - keyToTimeLastPressedMap.get(key) > MAX_BIND_DELAY) {
-				say = false;
+			if (keyToTimeLastPressedMap.get(key) != null && System.currentTimeMillis() - keyToTimeLastPressedMap.get(key) < MAX_DELAY) {
+				recentlyPressed.add(key);
 			}
 		}
-	
-		if (say && saying != null) {
-			say();
-		}
-
-
-	}
-	
-	private void say() {
-		String script = SCRIPT_PART0 + "\"" + saying + "\"";
 		
-		try {
-			PrintWriter writer = new PrintWriter("talking_file.vbs", "UTF-8");
-			writer.println(script);
-			writer.close();
-			Runtime.getRuntime().exec("cmd /c start talking_file.vbs");
-		} catch (Exception e) {
-			e.printStackTrace();
+		for (BindHBox hbox: bindHBoxes) {
+			if (recentlyPressed.containsAll(hbox.getBindKeys())) {
+				hbox.onBindSatisfied();
+			}
 		}
 	}
 }
