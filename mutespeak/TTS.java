@@ -49,12 +49,9 @@ public class TTS extends Application {
 	private KeyListener listener;
 	private static final int NUM_FIELDS = 20;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		
 		launch(args);
-		while(true) {
-			
-		}
 		
 	}
 	

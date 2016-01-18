@@ -29,7 +29,7 @@ public class KeyListener implements HotkeyListener {
 	private static int hotKeyIndexIncrementer = 0;
 	
 	private Map<String, Long> keyToTimeLastPressedMap;
-	private static final long MAX_DELAY = 500;
+	private static final long MAX_DELAY = 130;
 	
 	protected List<BindHBox> bindHBoxes;
 	protected boolean bindsEnabled;
