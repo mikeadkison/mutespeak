@@ -29,12 +29,17 @@ public class KeyListener implements HotkeyListener {
 	private static int hotKeyIndexIncrementer = 0;
 	
 	private Map<String, Long> keyToTimeLastPressedMap;
-	private static final long MAX_DELAY = 130;
+	private static final long MAX_DELAY = 30;
 	
 	protected List<BindHBox> bindHBoxes;
 	protected boolean bindsEnabled;
 	
+	private long bindLastActivated;
+	
+	private static long BIND_COOLDOWN = 500;
+	
 	public KeyListener() {
+		bindLastActivated = 0;
 		bindsEnabled = true;
 		//assign this class to be a HotKeyListener
 		JIntellitype.setLibraryLocation(new File("JIntellitype64.dll"));
@@ -58,6 +63,7 @@ public class KeyListener implements HotkeyListener {
 				nonModifiers.add(key);
 			}
 		}
+		unRegisterBinds();
 		doBinds();
 	}
 	
@@ -78,18 +84,24 @@ public class KeyListener implements HotkeyListener {
 				nonModifiers.remove(key);
 			}
 		}
-		
+		unRegisterBinds();
 		doBinds();
 	}
 	
+	
+	private void unRegisterBinds() {
+		for (Integer unBindIndex: hotKeyIndexToComboMap.keySet()) { //deregister all of the current hotkeys
+			JIntellitype.getInstance().unregisterHotKey(unBindIndex);
+		}
+	}
 	
 	/**
 	 * map key combinations to what key presses they satisfy
 	 * important: cant have two+ non modifiers in a combo
 	 */
 	public void doBinds() {
-		//clear previous information
-		triggeringComboToKeysMap.clear();
+		clearMaps();
+		bindsEnabled = true;
 		
 		
 		//map a combo composed only of a single modifier to the single modifier (and nothing else) which that combo satisfies
@@ -146,6 +158,15 @@ public class KeyListener implements HotkeyListener {
 			hotKeyIndexIncrementer++;
 		}
 		
+		System.out.println("triggeringComboToKeysMap: " + triggeringComboToKeysMap.keySet());
+		
+		
+	}
+	
+	private void clearMaps() {
+		triggeringComboToKeysMap.clear();
+		hotKeyIndexToComboMap.clear();
+		keyToTimeLastPressedMap.clear();
 	}
 	
 	private List<String> combinate(List<String> theList, int depth) {
@@ -168,7 +189,17 @@ public class KeyListener implements HotkeyListener {
 		}
 		return basePlusResults;
 	}
-		
+	
+	protected void disableBinds() {
+		unRegisterBinds();
+		bindsEnabled = false;
+	}
+	
+	protected void enableBinds() {
+		unRegisterBinds();
+		bindsEnabled = true;
+		doBinds();
+	}
 	
 	@Override
 	public void onHotKey(int aIdentifier) {
@@ -192,12 +223,18 @@ public class KeyListener implements HotkeyListener {
 				}
 			}
 			
-			
+			//need: a system to wait a bit before calling onBindSatisfied to see if any additional keys are pressed that could result in a more complicated combo
 			for (BindHBox hbox: bindHBoxes) {
 				if (recentlyPressed.containsAll(hbox.getBindKeys()) && !hbox.getBindKeys().isEmpty()) {
-					hbox.onBindSatisfied();
+					System.out.println("currtime: " + System.currentTimeMillis());
+					System.out.println("lsdtct: " + bindLastActivated);
+					if (System.currentTimeMillis() - bindLastActivated > BIND_COOLDOWN) {
+						hbox.onBindSatisfied();
+						bindLastActivated = System.currentTimeMillis();
+					}
 				}
 			}
+			
 		}
 		
 	}

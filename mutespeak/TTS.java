@@ -103,9 +103,9 @@ public class TTS extends Application {
 			@Override
 			public void changed(ObservableValue<? extends Boolean> observableVal, Boolean oldVal, Boolean newVal) {
 				if (true == newVal) { //turn binds on
-					listener.bindsEnabled = true;
+					listener.enableBinds();
 				} else { //turn binds off
-					listener.bindsEnabled = false;
+					listener.disableBinds();
 				}
 			}
 		});
