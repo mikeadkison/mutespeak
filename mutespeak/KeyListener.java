@@ -19,7 +19,6 @@ import javafx.scene.control.TextField;
 
 public class KeyListener implements HotkeyListener {
 	
-	private final static String SCRIPT_PART0 = "' \nset speech = Wscript.CreateObject(\"SAPI.spVoice\")\n speech.speak ";
 	
 	private List<String> nonModifiers; //a-z 0-9 keys which are non modifiers
 	private List<String> modifiers; //ctrl, alt keys which are modifiers
@@ -38,7 +37,6 @@ public class KeyListener implements HotkeyListener {
 		//assign this class to be a HotKeyListener
 		JIntellitype.setLibraryLocation(new File("JIntellitype64.dll"));
 		JIntellitype.getInstance().addHotKeyListener(this);
-		
 		
 		nonModifiers = new ArrayList<>();
 		modifiers = new ArrayList<>();
@@ -60,6 +58,26 @@ public class KeyListener implements HotkeyListener {
 		}
 		doBinds();
 	}
+	
+	/**
+	 * @param from the BindHBox which made the request to stop listeningg to key
+	 */
+	protected void stopListeningFor(String key, BindHBox from) {
+		boolean actuallyStopListening = true;
+		for (BindHBox hbox: bindHBoxes) {
+			if (hbox != from && hbox.getBindKeys().contains(key)) {
+				actuallyStopListening = false;
+			}
+		}
+		
+		if (actuallyStopListening) {
+			modifiers.remove(key);
+			nonModifiers.remove(key);
+		}
+		
+		doBinds();
+	}
+	
 	
 	/**
 	 * map key combinations to what key presses they satisfy
@@ -147,7 +165,6 @@ public class KeyListener implements HotkeyListener {
 			
 		}
 		return basePlusResults;
-
 	}
 		
 	
@@ -164,14 +181,17 @@ public class KeyListener implements HotkeyListener {
 		keys.addAll(nonModifiers);
 		
 		List<String> recentlyPressed = new ArrayList<>();
+		
 		for (String key: keys) {
+
 			if (keyToTimeLastPressedMap.get(key) != null && System.currentTimeMillis() - keyToTimeLastPressedMap.get(key) < MAX_DELAY) {
 				recentlyPressed.add(key);
 			}
 		}
 		
+		
 		for (BindHBox hbox: bindHBoxes) {
-			if (recentlyPressed.containsAll(hbox.getBindKeys())) {
+			if (recentlyPressed.containsAll(hbox.getBindKeys()) && !hbox.getBindKeys().isEmpty()) {
 				hbox.onBindSatisfied();
 			}
 		}

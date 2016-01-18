@@ -42,10 +42,13 @@ import javafx.scene.layout.VBox;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 
+import java.util.prefs.Preferences;
+
 public class TTS extends Application {
-	List<BindHBox> bindHBoxes;
-	KeyListener listener;
-	
+	private List<BindHBox> bindHBoxes;
+	private KeyListener listener;
+	private static final int NUM_FIELDS = 20;
+
 	public static void main(String[] args) {
 		
 		launch(args);
@@ -57,11 +60,18 @@ public class TTS extends Application {
 	
 	@Override
     public void start(Stage stage) throws IOException {
-		
+		Preferences preferences = Preferences.userRoot().node(this.getClass().getName()); //used to save/load fields
 		listener = new KeyListener();
 		
 		stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 			public void handle(WindowEvent e) {
+				
+				for (int i = 0; i < bindHBoxes.size(); i++) {
+					preferences.put("textField" + i, bindHBoxes.get(i).sayingTextField.getText());
+					preferences.putBoolean("ctrlCB" + i, bindHBoxes.get(i).cntrlCB.isSelected());
+					preferences.putBoolean("altCB" + i, bindHBoxes.get(i).altCB.isSelected());
+				}
+				
 				try {
 					Platform.exit();
 					System.exit(0);
@@ -69,6 +79,8 @@ public class TTS extends Application {
 				catch (Exception e1) {
 					e1.printStackTrace();
 				}
+				
+				
 			}
 	    });
 		
@@ -78,10 +90,13 @@ public class TTS extends Application {
 		bindToggle.setSelected(true);
 		
 		bindHBoxes = new ArrayList<>();
-		for (int i = 0; i < 20; i++) {
+		for (int i = 0; i < NUM_FIELDS; i++) {
 			BindHBox bindHBox = new BindHBox(listener, bindHBoxes, bindToggle);
 			gridPane.add(bindHBox, 0, i);
 			bindHBoxes.add(bindHBox);
+			bindHBox.sayingTextField.setText(preferences.get("textField" + i, ""));
+			bindHBox.cntrlCB.setSelected((preferences.getBoolean("ctrlCB" + i, false)));
+			bindHBox.altCB.setSelected((preferences.getBoolean("altCB" + i, false)));
 		}
 		
 		listener.bindHBoxes = bindHBoxes;

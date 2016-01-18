@@ -46,11 +46,11 @@ public class BindHBox extends HBox {
 	protected Label bindCharactersLabel;
 	private KeyListener listener;
 	private List<BindHBox> allHBoxes;
-	private CheckBox cntrlCB;
-	private CheckBox altCB;
+	protected CheckBox cntrlCB;
+	protected CheckBox altCB;
 	protected ComboBox<String> bindsComboBox0;
 	protected ComboBox<String> bindsComboBox1;
-	private TextField sayingTextField;
+	protected TextField sayingTextField;
 	
 	private static final List<String> ALLOWED_BINDS = new ArrayList<>();
 	
@@ -97,7 +97,7 @@ public class BindHBox extends HBox {
 				if (newVal) {
 					listener.startListeningFor("CTRL");
 				} else {
-					//listener.removeBind("CTRL");
+					listener.stopListeningFor("CTRL", BindHBox.this);
 				}
 			}
 		});
@@ -108,14 +108,14 @@ public class BindHBox extends HBox {
 				if (newVal) {
 					listener.startListeningFor("ALT");
 				} else {
-					//listener.removeBind("ALT");
+					listener.stopListeningFor("ALT", BindHBox.this);
 				}
 			}
 		});
 		
 		bindsComboBox0.valueProperty().addListener(new ChangeListener<String>() {
 			@Override public void changed(ObservableValue ov, String oldStr, String newStr) {
-				//listener.removeBind(oldStr);
+				listener.stopListeningFor(oldStr, BindHBox.this);
 				if (!newStr.equals("")) {	
 					testAndClearOtherHBoxes(bindsComboBox0);
 					listener.startListeningFor(newStr);
@@ -125,19 +125,12 @@ public class BindHBox extends HBox {
 		
 		bindsComboBox1.valueProperty().addListener(new ChangeListener<String>() {
 			@Override public void changed(ObservableValue ov, String oldStr, String newStr) {
-				//listener.removeBind(oldStr);
+				listener.stopListeningFor(oldStr, BindHBox.this);
 				if (!newStr.equals("")) {
 					testAndClearOtherHBoxes(bindsComboBox1); //order of these two lines matters
 					listener.startListeningFor(newStr);
 				}
 			}    
-		});
-
-		
-		sayingTextField.setOnKeyTyped(new EventHandler<KeyEvent>() {
-			public void handle(KeyEvent ke) {
-				//listener.changeSaying(sayingTextField.getText() + ke.getCharacter());
-			}
 		});
 	}
 	
@@ -169,8 +162,14 @@ public class BindHBox extends HBox {
 	
 	protected List<String> getBindKeys() {
 		List<String> binds = new ArrayList<>();
-		binds.add(bindsComboBox0.getValue());
-		binds.add(bindsComboBox1.getValue());
+		if (!bindsComboBox0.getValue().equals("")) {
+			binds.add(bindsComboBox0.getValue());
+		}
+		
+		if (!bindsComboBox1.getValue().equals("")) {
+			binds.add(bindsComboBox1.getValue());
+		}
+		
 		if (cntrlCB.isSelected()) {
 			binds.add("CTRL");
 		}
