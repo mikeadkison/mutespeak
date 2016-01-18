@@ -65,16 +65,18 @@ public class KeyListener implements HotkeyListener {
 	 * @param from the BindHBox which made the request to stop listeningg to key
 	 */
 	protected void stopListeningFor(String key, BindHBox from) {
-		boolean actuallyStopListening = true;
-		for (BindHBox hbox: bindHBoxes) {
-			if (hbox != from && hbox.getBindKeys().contains(key)) {
-				actuallyStopListening = false;
+		if (bindHBoxes != null) {
+			boolean actuallyStopListening = true;
+			for (BindHBox hbox: bindHBoxes) {
+				if (hbox != from && hbox.getBindKeys().contains(key)) {
+					actuallyStopListening = false;
+				}
 			}
-		}
-		
-		if (actuallyStopListening) {
-			modifiers.remove(key);
-			nonModifiers.remove(key);
+			
+			if (actuallyStopListening) {
+				modifiers.remove(key);
+				nonModifiers.remove(key);
+			}
 		}
 		
 		doBinds();

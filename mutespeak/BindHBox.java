@@ -99,6 +99,7 @@ public class BindHBox extends HBox {
 				} else {
 					listener.stopListeningFor("CTRL", BindHBox.this);
 				}
+				testAndClearOtherHBoxes(bindsComboBox0);
 			}
 		});
 		
@@ -110,6 +111,7 @@ public class BindHBox extends HBox {
 				} else {
 					listener.stopListeningFor("ALT", BindHBox.this);
 				}
+				testAndClearOtherHBoxes(bindsComboBox0);
 			}
 		});
 		
@@ -151,11 +153,10 @@ public class BindHBox extends HBox {
 		//check if binds are the same between hboxes and clear the appropriate fields if so
 		if (otherCntrlCB.isSelected() == this.cntrlCB.isSelected() && otherAltCB.isSelected() == this.altCB.isSelected()) {
 			if (otherCbox0.getValue().equals(bindsComboBox0.getValue()) && otherCbox1.getValue().equals(bindsComboBox1.getValue())) {
-				if (otherCbox0.getValue().equals(changedCB.getValue())) {
-					otherCbox0.setValue("");
-				} else if (otherCbox1.getValue().equals(changedCB.getValue())) {
-					otherCbox0.setValue("");
-				}
+				otherCbox0.setValue("");
+				otherCbox1.setValue("");
+				otherCntrlCB.setSelected(false);
+				otherAltCB.setSelected(false);
 			}
 		}
 	}
