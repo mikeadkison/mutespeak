@@ -6,7 +6,7 @@ Works on Windows only (most people play games on Windows unfortunately). Generat
 To route audio to the voice chat program, set Windows Stereo Mix to the default recording device as seen [here](http://www.howtogeek.com/howto/39532/how-to-enable-stereo-mix-in-windows-7-to-record-audio/). Select Stereo Mix as your microphone in the voice chat program. There are probably ways to use [jack](http://www.jackaudio.org/) or [CheVolume](http://www.chevolume.com/) or [audiorouter](https://github.com/audiorouterdev/audio-router) in conjunction with [virtual audio cable](http://software.muzychenko.net/eng/vac.htm) to route audio better.
 
 #### Compiling
-javac -cp .;jintellitype-1.3.9.jar mutespeak/*.java
+javac -cp jintellitype-1.3.9.jar mutespeak/*.java
 
 #### Running
 java -cp .;jintellitype-1.3.9.jar mutespeak.TTS
